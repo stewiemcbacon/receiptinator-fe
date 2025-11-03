@@ -14,6 +14,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SettingsIcon from '@mui/icons-material/Settings';
 import InfoIcon from '@mui/icons-material/Info';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { ReactElement } from 'react';
 
 const drawerWidth = 240;
@@ -28,6 +29,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Receipts', icon: <ReceiptLongIcon />, path: '/receipts' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
     { text: 'About', icon: <InfoIcon />, path: '/about' }
 ];

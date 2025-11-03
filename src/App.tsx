@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import About from './pages/About';
+import Receipts from './pages/Receipts';
 
 function App() {
     return (
@@ -30,6 +31,10 @@ function App() {
                         <Route
                             path="/about"
                             element={<About />}
+                        />
+                        <Route
+                            path="/receipts"
+                            element={<Receipts />}
                         />
                     </Routes>
                 </AppLayout>
