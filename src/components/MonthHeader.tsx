@@ -37,9 +37,7 @@ const MonthHeader: React.FC<MonthHeaderProps> = ({ month, totalSpent, receiptCou
                 borderColor: 'divider',
                 backdropFilter: 'blur(10px)',
                 backgroundColor: (theme) =>
-                    theme.palette.mode === 'light'
-                        ? 'rgba(255, 255, 255, 0.95)'
-                        : 'rgba(18, 18, 18, 0.95)',
+                    theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(18, 18, 18, 0.95)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',

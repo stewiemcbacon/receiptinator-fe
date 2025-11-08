@@ -28,7 +28,7 @@ const Receipts: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [filters, setFilters] = useState<Filters>({});
+    const [filters, setFilters] = useState<Filters>({ searchQuery: '' });
     const [viewMode, setViewMode] = useState<ViewMode>('cards');
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
@@ -57,12 +57,12 @@ const Receipts: React.FC = () => {
                 setReceipts(response.receipts);
                 setMonthlyTotals(response.monthlyTotals);
             } else {
-                setReceipts(prev => [...prev, ...response.receipts]);
+                setReceipts((prev) => [...prev, ...response.receipts]);
                 // Merge monthly totals, updating existing ones and adding new ones
-                setMonthlyTotals(prev => {
+                setMonthlyTotals((prev) => {
                     const merged = [...prev];
-                    response.monthlyTotals.forEach(newTotal => {
-                        const existingIndex = merged.findIndex(t => t.month === newTotal.month);
+                    response.monthlyTotals.forEach((newTotal) => {
+                        const existingIndex = merged.findIndex((t) => t.month === newTotal.month);
                         if (existingIndex >= 0) {
                             merged[existingIndex] = newTotal;
                         } else {
@@ -104,13 +104,12 @@ const Receipts: React.FC = () => {
         }
     }, [loadingMore, hasMore, loading, filters, page]);
 
-    // Initial load
+    // Fetch available months only once on mount
     useEffect(() => {
-        void fetchReceipts();
         void fetchAvailableMonths();
     }, []);
 
-    // Trigger search when filters change
+    // Fetch receipts when filters change (including initial mount)
     useEffect(() => {
         void fetchReceipts(filters);
     }, [filters]);
@@ -146,7 +145,7 @@ const Receipts: React.FC = () => {
     const groupReceiptsByMonth = (receipts: Receipt[]): Map<string, Receipt[]> => {
         const grouped = new Map<string, Receipt[]>();
 
-        receipts.forEach(receipt => {
+        receipts.forEach((receipt) => {
             const date = new Date(receipt.date);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -341,7 +340,7 @@ const Receipts: React.FC = () => {
                     {viewMode === 'cards' ? (
                         <Box>
                             {Array.from(groupReceiptsByMonth(receipts)).map(([monthKey, monthReceipts]) => {
-                                const monthTotal = monthlyTotals.find(t => t.month === monthKey);
+                                const monthTotal = monthlyTotals.find((t) => t.month === monthKey);
                                 return (
                                     <Box key={monthKey}>
                                         <MonthHeader

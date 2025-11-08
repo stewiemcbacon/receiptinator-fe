@@ -11,17 +11,18 @@ interface ReceiptFiltersProps {
     availableMonths: AvailableMonth[];
 }
 
-const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
-    filters,
-    onFiltersChange,
-    availableMonths
-}) => {
+const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChange, availableMonths }) => {
     const [localSearchQuery, setLocalSearchQuery] = useState(filters.searchQuery || '');
 
     // Debounce search query changes
     useEffect(() => {
+        // Only update if the search query actually changed from what's in filters
+        if (localSearchQuery === filters.searchQuery) {
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
-            onFiltersChange({ ...filters, searchQuery: localSearchQuery || undefined });
+            onFiltersChange({ ...filters, searchQuery: localSearchQuery });
         }, 500); // 500ms debounce delay
 
         return () => clearTimeout(timeoutId);
@@ -39,8 +40,6 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
     const handleClearSearch = () => {
         setLocalSearchQuery('');
     };
-
-    const isFiltersActive = localSearchQuery || filters.month;
 
     return (
         <Paper
@@ -109,7 +108,10 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                             <em>All Months</em>
                         </MenuItem>
                         {availableMonths.map((month) => (
-                            <MenuItem key={month.month} value={month.month}>
+                            <MenuItem
+                                key={month.month}
+                                value={month.month}
+                            >
                                 {month.label}
                             </MenuItem>
                         ))}

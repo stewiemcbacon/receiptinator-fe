@@ -25,8 +25,8 @@ export interface Receipt {
 }
 
 export interface ReceiptFilters {
-    searchQuery?: string;  // Unified search for store name AND items
-    month?: string;        // Format: YYYY-MM
+    searchQuery?: string; // Unified search for store name AND items
+    month?: string; // Format: YYYY-MM
 }
 
 export interface MonthlyTotal {

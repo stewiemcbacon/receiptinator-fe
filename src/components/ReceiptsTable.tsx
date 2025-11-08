@@ -136,7 +136,10 @@ const Row: React.FC<RowProps> = ({ receipt }) => {
                                 <InnerTableBody>
                                     {receipt.receiptItems.map((item) => (
                                         <InnerTableRow key={item.id}>
-                                            <InnerTableCell component="th" scope="row">
+                                            <InnerTableCell
+                                                component="th"
+                                                scope="row"
+                                            >
                                                 {item.item.name}
                                             </InnerTableCell>
                                             <InnerTableCell align="right">{item.quantity}</InnerTableCell>
