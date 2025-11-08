@@ -28,8 +28,8 @@ const MonthHeader: React.FC<MonthHeaderProps> = ({ month, totalSpent, receiptCou
         <Box
             sx={{
                 position: 'sticky',
-                top: 0,
-                zIndex: 1000,
+                top: { xs: 64, sm: 64 },
+                zIndex: 100,
                 py: 2,
                 px: 1,
                 mb: 2,

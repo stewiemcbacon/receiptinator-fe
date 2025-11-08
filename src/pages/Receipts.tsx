@@ -333,7 +333,7 @@ const Receipts: React.FC = () => {
                     </Box>
 
                     {viewMode === 'cards' ? (
-                        <Box sx={{ position: 'relative' }}>
+                        <Box>
                             {Array.from(groupReceiptsByMonth(receipts)).map(([monthKey, monthReceipts]) => {
                                 const monthTotal = monthlyTotals.find(t => t.month === monthKey);
                                 return (
