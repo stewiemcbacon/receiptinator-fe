@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Box,
     Container,
@@ -8,7 +8,8 @@ import {
     Skeleton,
     Paper,
     ToggleButton,
-    ToggleButtonGroup
+    ToggleButtonGroup,
+    CircularProgress
 } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
@@ -16,35 +17,130 @@ import TableRowsIcon from '@mui/icons-material/TableRows';
 import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
 import ReceiptsTable from '../components/ReceiptsTable';
+import MonthHeader from '../components/MonthHeader';
 import { getReceipts } from '../services/receipts.service';
-import { Receipt, ReceiptFilters as Filters } from '../types/receipt.types';
+import { Receipt, ReceiptFilters as Filters, MonthlyTotal } from '../types/receipt.types';
 
 type ViewMode = 'cards' | 'table';
 
 const Receipts: React.FC = () => {
     const [receipts, setReceipts] = useState<Receipt[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<Filters>({});
     const [viewMode, setViewMode] = useState<ViewMode>('cards');
+    const [page, setPage] = useState<number>(0);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+    const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
+    const [totalElements, setTotalElements] = useState<number>(0);
 
-    const fetchReceipts = async (appliedFilters?: Filters) => {
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+    const fetchReceipts = async (appliedFilters?: Filters, resetData: boolean = true) => {
         try {
-            setLoading(true);
+            if (resetData) {
+                setLoading(true);
+                setPage(0);
+                setReceipts([]);
+            } else {
+                setLoadingMore(true);
+            }
             setError(null);
-            const data = await getReceipts(appliedFilters);
-            setReceipts(data);
+
+            const currentPage = resetData ? 0 : page;
+            const response = await getReceipts(appliedFilters, currentPage, 20);
+
+            if (resetData) {
+                setReceipts(response.receipts);
+                setMonthlyTotals(response.monthlyTotals);
+            } else {
+                setReceipts(prev => [...prev, ...response.receipts]);
+                // Merge monthly totals, updating existing ones and adding new ones
+                setMonthlyTotals(prev => {
+                    const merged = [...prev];
+                    response.monthlyTotals.forEach(newTotal => {
+                        const existingIndex = merged.findIndex(t => t.month === newTotal.month);
+                        if (existingIndex >= 0) {
+                            merged[existingIndex] = newTotal;
+                        } else {
+                            merged.push(newTotal);
+                        }
+                    });
+                    return merged;
+                });
+            }
+
+            setTotalElements(response.totalElements);
+            setHasMore(response.hasNext);
+            if (!resetData) {
+                setPage(currentPage + 1);
+            } else {
+                setPage(1);
+            }
         } catch (err) {
             setError('Failed to load receipts. Please try again later.');
             console.error('Error fetching receipts:', err);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
+
+    const loadMore = useCallback(() => {
+        if (!loadingMore && hasMore && !loading) {
+            void fetchReceipts(filters, false);
+        }
+    }, [loadingMore, hasMore, loading, filters, page]);
 
     useEffect(() => {
         void fetchReceipts();
     }, []);
+
+    // Intersection Observer for infinite scroll
+    useEffect(() => {
+        if (viewMode !== 'cards') return;
+
+        const options = {
+            root: null,
+            rootMargin: '100px',
+            threshold: 0.1
+        };
+
+        observerRef.current = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                loadMore();
+            }
+        }, options);
+
+        if (loadMoreRef.current) {
+            observerRef.current.observe(loadMoreRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, [loadMore, viewMode]);
+
+    // Group receipts by month for Card view
+    const groupReceiptsByMonth = (receipts: Receipt[]): Map<string, Receipt[]> => {
+        const grouped = new Map<string, Receipt[]>();
+
+        receipts.forEach(receipt => {
+            const date = new Date(receipt.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            if (!grouped.has(monthKey)) {
+                grouped.set(monthKey, []);
+            }
+            grouped.get(monthKey)!.push(receipt);
+        });
+
+        return grouped;
+    };
 
     const handleApplyFilters = () => {
         void fetchReceipts(filters);
@@ -210,7 +306,7 @@ const Receipts: React.FC = () => {
                             variant="body2"
                             color="text.secondary"
                         >
-                            Showing {receipts.length} receipt{receipts.length !== 1 ? 's' : ''}
+                            Showing {receipts.length} of {totalElements} receipt{totalElements !== 1 ? 's' : ''}
                         </Typography>
                         <ToggleButtonGroup
                             value={viewMode}
@@ -237,19 +333,47 @@ const Receipts: React.FC = () => {
                     </Box>
 
                     {viewMode === 'cards' ? (
-                        <Grid
-                            container
-                            spacing={3}
-                        >
-                            {receipts.map((receipt) => (
-                                <Grid
-                                    key={receipt.id}
-                                    size={{ xs: 12, sm: 6, md: 4 }}
+                        <Box sx={{ position: 'relative' }}>
+                            {Array.from(groupReceiptsByMonth(receipts)).map(([monthKey, monthReceipts]) => {
+                                const monthTotal = monthlyTotals.find(t => t.month === monthKey);
+                                return (
+                                    <Box key={monthKey}>
+                                        <MonthHeader
+                                            month={monthKey}
+                                            totalSpent={monthTotal?.totalSpent || 0}
+                                            receiptCount={monthTotal?.receiptCount || 0}
+                                        />
+                                        <Grid
+                                            container
+                                            spacing={3}
+                                            sx={{ mb: 4 }}
+                                        >
+                                            {monthReceipts.map((receipt) => (
+                                                <Grid
+                                                    key={receipt.id}
+                                                    size={{ xs: 12, sm: 6, md: 4 }}
+                                                >
+                                                    <ReceiptCard receipt={receipt} />
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </Box>
+                                );
+                            })}
+                            {/* Infinite scroll trigger */}
+                            {hasMore && (
+                                <Box
+                                    ref={loadMoreRef}
+                                    sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        py: 4
+                                    }}
                                 >
-                                    <ReceiptCard receipt={receipt} />
-                                </Grid>
-                            ))}
-                        </Grid>
+                                    {loadingMore && <CircularProgress />}
+                                </Box>
+                            )}
+                        </Box>
                     ) : (
                         <ReceiptsTable receipts={receipts} />
                     )}

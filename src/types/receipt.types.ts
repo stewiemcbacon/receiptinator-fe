@@ -29,3 +29,19 @@ export interface ReceiptFilters {
     startDate?: string;
     endDate?: string;
 }
+
+export interface MonthlyTotal {
+    month: string; // Format: YYYY-MM
+    totalSpent: number;
+    receiptCount: number;
+}
+
+export interface PagedReceiptsResponse {
+    receipts: Receipt[];
+    monthlyTotals: MonthlyTotal[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    hasNext: boolean;
+}

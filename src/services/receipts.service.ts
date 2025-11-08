@@ -1,5 +1,5 @@
 import api from './api';
-import { Receipt, ReceiptFilters } from '../types/receipt.types';
+import { Receipt, ReceiptFilters, PagedReceiptsResponse } from '../types/receipt.types';
 
 /**
  * Fetch all receipts from the API
@@ -30,10 +30,17 @@ export const getReceiptsByDateRange = async (startDate: string, endDate: string)
 };
 
 /**
- * Fetch receipts with optional filters
+ * Fetch receipts with optional filters and pagination
  */
-export const getReceipts = async (filters?: ReceiptFilters): Promise<Receipt[]> => {
-    const params: Record<string, string> = {};
+export const getReceipts = async (
+    filters?: ReceiptFilters,
+    page: number = 0,
+    size: number = 20
+): Promise<PagedReceiptsResponse> => {
+    const params: Record<string, string | number> = {
+        page,
+        size
+    };
 
     if (filters?.store) {
         params.store = filters.store;
@@ -44,6 +51,6 @@ export const getReceipts = async (filters?: ReceiptFilters): Promise<Receipt[]> 
         params.endDate = filters.endDate;
     }
 
-    const response = await api.get<Receipt[]>('/api/receipts', { params });
+    const response = await api.get<PagedReceiptsResponse>('/api/receipts', { params });
     return response.data;
 };
