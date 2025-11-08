@@ -25,9 +25,8 @@ export interface Receipt {
 }
 
 export interface ReceiptFilters {
-    store?: string;
-    startDate?: string;
-    endDate?: string;
+    searchQuery?: string;  // Unified search for store name AND items
+    month?: string;        // Format: YYYY-MM
 }
 
 export interface MonthlyTotal {
@@ -44,4 +43,9 @@ export interface PagedReceiptsResponse {
     totalElements: number;
     totalPages: number;
     hasNext: boolean;
+}
+
+export interface AvailableMonth {
+    month: string; // Format: YYYY-MM
+    label: string; // Format: e.g., "January 2025"
 }

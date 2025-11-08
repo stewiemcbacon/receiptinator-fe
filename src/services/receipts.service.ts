@@ -1,5 +1,5 @@
 import api from './api';
-import { Receipt, ReceiptFilters, PagedReceiptsResponse } from '../types/receipt.types';
+import { Receipt, ReceiptFilters, PagedReceiptsResponse, AvailableMonth } from '../types/receipt.types';
 
 /**
  * Fetch all receipts from the API
@@ -42,15 +42,22 @@ export const getReceipts = async (
         size
     };
 
-    if (filters?.store) {
-        params.store = filters.store;
+    if (filters?.searchQuery) {
+        params.search = filters.searchQuery;
     }
 
-    if (filters?.startDate && filters?.endDate) {
-        params.startDate = filters.startDate;
-        params.endDate = filters.endDate;
+    if (filters?.month) {
+        params.month = filters.month;
     }
 
     const response = await api.get<PagedReceiptsResponse>('/api/receipts', { params });
+    return response.data;
+};
+
+/**
+ * Fetch available months that have receipts
+ */
+export const getAvailableMonths = async (): Promise<AvailableMonth[]> => {
+    const response = await api.get<AvailableMonth[]>('/api/receipts/available-months');
     return response.data;
 };

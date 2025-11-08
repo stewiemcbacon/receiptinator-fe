@@ -18,8 +18,8 @@ import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
 import ReceiptsTable from '../components/ReceiptsTable';
 import MonthHeader from '../components/MonthHeader';
-import { getReceipts } from '../services/receipts.service';
-import { Receipt, ReceiptFilters as Filters, MonthlyTotal } from '../types/receipt.types';
+import { getReceipts, getAvailableMonths } from '../services/receipts.service';
+import { Receipt, ReceiptFilters as Filters, MonthlyTotal, AvailableMonth } from '../types/receipt.types';
 
 type ViewMode = 'cards' | 'table';
 
@@ -34,6 +34,7 @@ const Receipts: React.FC = () => {
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
     const [totalElements, setTotalElements] = useState<number>(0);
+    const [availableMonths, setAvailableMonths] = useState<AvailableMonth[]>([]);
 
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -88,15 +89,31 @@ const Receipts: React.FC = () => {
         }
     };
 
+    const fetchAvailableMonths = async () => {
+        try {
+            const months = await getAvailableMonths();
+            setAvailableMonths(months);
+        } catch (err) {
+            console.error('Error fetching available months:', err);
+        }
+    };
+
     const loadMore = useCallback(() => {
         if (!loadingMore && hasMore && !loading) {
             void fetchReceipts(filters, false);
         }
     }, [loadingMore, hasMore, loading, filters, page]);
 
+    // Initial load
     useEffect(() => {
         void fetchReceipts();
+        void fetchAvailableMonths();
     }, []);
+
+    // Trigger search when filters change
+    useEffect(() => {
+        void fetchReceipts(filters);
+    }, [filters]);
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -140,16 +157,6 @@ const Receipts: React.FC = () => {
         });
 
         return grouped;
-    };
-
-    const handleApplyFilters = () => {
-        void fetchReceipts(filters);
-    };
-
-    const handleClearFilters = () => {
-        const emptyFilters: Filters = {};
-        setFilters(emptyFilters);
-        void fetchReceipts(emptyFilters);
     };
 
     const handleViewChange = (_event: React.MouseEvent<HTMLElement>, newView: ViewMode | null) => {
@@ -243,8 +250,7 @@ const Receipts: React.FC = () => {
             <ReceiptFilters
                 filters={filters}
                 onFiltersChange={setFilters}
-                onApplyFilters={handleApplyFilters}
-                onClearFilters={handleClearFilters}
+                availableMonths={availableMonths}
             />
 
             {/* Error State */}
@@ -282,8 +288,8 @@ const Receipts: React.FC = () => {
                         variant="body2"
                         color="text.secondary"
                     >
-                        {filters.store || filters.startDate || filters.endDate
-                            ? 'Try adjusting your filters to see more results.'
+                        {filters.searchQuery || filters.month
+                            ? 'Try adjusting your search or filters to see more results.'
                             : 'Your receipts will appear here once they are added.'}
                     </Typography>
                 </Paper>

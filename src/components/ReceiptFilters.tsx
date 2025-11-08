@@ -1,42 +1,46 @@
-import React from 'react';
-import { Box, TextField, Button, Paper, Grid2 as Grid, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, TextField, Paper, Grid2 as Grid, Typography, MenuItem, IconButton, InputAdornment } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchIcon from '@mui/icons-material/Search';
-import { ReceiptFilters as Filters } from '../types/receipt.types';
+import { ReceiptFilters as Filters, AvailableMonth } from '../types/receipt.types';
 
 interface ReceiptFiltersProps {
     filters: Filters;
     onFiltersChange: (filters: Filters) => void;
-    onApplyFilters: () => void;
-    onClearFilters: () => void;
+    availableMonths: AvailableMonth[];
 }
 
 const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
     filters,
     onFiltersChange,
-    onApplyFilters,
-    onClearFilters
+    availableMonths
 }) => {
-    const handleStoreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onFiltersChange({ ...filters, store: event.target.value });
+    const [localSearchQuery, setLocalSearchQuery] = useState(filters.searchQuery || '');
+
+    // Debounce search query changes
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            onFiltersChange({ ...filters, searchQuery: localSearchQuery || undefined });
+        }, 500); // 500ms debounce delay
+
+        return () => clearTimeout(timeoutId);
+    }, [localSearchQuery]);
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalSearchQuery(event.target.value);
     };
 
-    const handleStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onFiltersChange({ ...filters, startDate: event.target.value });
+    const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        onFiltersChange({ ...filters, month: value || undefined });
     };
 
-    const handleEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onFiltersChange({ ...filters, endDate: event.target.value });
+    const handleClearSearch = () => {
+        setLocalSearchQuery('');
     };
 
-    const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            onApplyFilters();
-        }
-    };
-
-    const isFiltersActive = filters.store || filters.startDate || filters.endDate;
+    const isFiltersActive = localSearchQuery || filters.month;
 
     return (
         <Paper
@@ -49,7 +53,7 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                     variant="h6"
                     fontWeight="bold"
                 >
-                    Filter Receipts
+                    Search & Filter
                 </Typography>
             </Box>
 
@@ -57,79 +61,59 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({
                 container
                 spacing={2}
             >
-                {/* Store Filter */}
+                {/* Search Input */}
+                <Grid size={{ xs: 12, md: 8 }}>
+                    <TextField
+                        fullWidth
+                        label="Search"
+                        placeholder="Search by store name or item..."
+                        value={localSearchQuery}
+                        onChange={handleSearchChange}
+                        variant="outlined"
+                        size="small"
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: localSearchQuery && (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            size="small"
+                                            onClick={handleClearSearch}
+                                            edge="end"
+                                        >
+                                            <ClearIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }
+                        }}
+                    />
+                </Grid>
+
+                {/* Month Filter */}
                 <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                         fullWidth
-                        label="Store Name"
-                        placeholder="Enter store name"
-                        value={filters.store || ''}
-                        onChange={handleStoreChange}
-                        onKeyPress={handleKeyPress}
+                        select
+                        label="Month"
+                        value={filters.month || ''}
+                        onChange={handleMonthChange}
                         variant="outlined"
                         size="small"
-                    />
-                </Grid>
-
-                {/* Start Date Filter */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <TextField
-                        fullWidth
-                        label="Start Date"
-                        type="date"
-                        value={filters.startDate || ''}
-                        onChange={handleStartDateChange}
-                        onKeyPress={handleKeyPress}
-                        variant="outlined"
-                        size="small"
-                        InputLabelProps={{
-                            shrink: true
-                        }}
-                    />
-                </Grid>
-
-                {/* End Date Filter */}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <TextField
-                        fullWidth
-                        label="End Date"
-                        type="date"
-                        value={filters.endDate || ''}
-                        onChange={handleEndDateChange}
-                        onKeyPress={handleKeyPress}
-                        variant="outlined"
-                        size="small"
-                        InputLabelProps={{
-                            shrink: true
-                        }}
-                    />
-                </Grid>
-
-                {/* Action Buttons */}
-                <Grid size={{ xs: 12, md: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 1, height: '100%' }}>
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            color="primary"
-                            onClick={onApplyFilters}
-                            startIcon={<SearchIcon />}
-                            sx={{ minHeight: 40 }}
-                        >
-                            Apply
-                        </Button>
-                        {isFiltersActive && (
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                onClick={onClearFilters}
-                                startIcon={<ClearIcon />}
-                                sx={{ minHeight: 40 }}
-                            >
-                                Clear
-                            </Button>
-                        )}
-                    </Box>
+                    >
+                        <MenuItem value="">
+                            <em>All Months</em>
+                        </MenuItem>
+                        {availableMonths.map((month) => (
+                            <MenuItem key={month.month} value={month.month}>
+                                {month.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                 </Grid>
             </Grid>
         </Paper>
