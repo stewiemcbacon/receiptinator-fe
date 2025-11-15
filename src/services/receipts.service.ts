@@ -61,3 +61,58 @@ export const getAvailableMonths = async (): Promise<AvailableMonth[]> => {
     const response = await api.get<AvailableMonth[]>('/api/receipts/available-months');
     return response.data;
 };
+
+/**
+ * Upload a receipt image to the n8n workflow
+ * @param file - The image file to upload
+ * @returns Promise<void>
+ */
+export const uploadReceipt = async (file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Get webhook URL from environment variable
+    const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+
+    if (!webhookUrl) {
+        throw new Error('N8N webhook URL not configured. Please set VITE_N8N_WEBHOOK_URL in your .env file.');
+    }
+
+    try {
+        const response = await api.post(webhookUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+
+        return response.data;
+    } catch (error: any) {
+        // Extract error message from n8n response
+        if (error?.response?.data) {
+            const errorData = error.response.data;
+
+            // New format from our updated workflow: { success: false, error: "message" }
+            if (errorData.success === false && errorData.error) {
+                throw new Error(errorData.error);
+            }
+
+            // Format: Object with error property
+            if (errorData.error) {
+                throw new Error(errorData.error);
+            }
+
+            // Format: Object with message property
+            if (errorData.message) {
+                throw new Error(errorData.message);
+            }
+
+            // Format: Plain string
+            if (typeof errorData === 'string') {
+                throw new Error(errorData);
+            }
+        }
+
+        // Re-throw the original error if we couldn't extract a message
+        throw error;
+    }
+};
