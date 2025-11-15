@@ -15,20 +15,46 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper
+    Paper,
+    IconButton,
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    ListItemText
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import StoreIcon from '@mui/icons-material/Store';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Receipt } from '../types/receipt.types';
 
 interface ReceiptCardProps {
     receipt: Receipt;
+    onDelete?: (id: number) => void;
 }
 
-const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt }) => {
+const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete }) => {
     const [expanded, setExpanded] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const menuOpen = Boolean(anchorEl);
+
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        event.stopPropagation();
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleDelete = () => {
+        handleMenuClose();
+        if (onDelete) {
+            onDelete(receipt.id);
+        }
+    };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -63,15 +89,26 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt }) => {
             <CardContent sx={{ flexGrow: 1, pb: 1 }}>
                 {/* Header Section */}
                 <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <StoreIcon color="primary" />
-                        <Typography
-                            variant="h6"
-                            component="div"
-                            fontWeight="bold"
-                        >
-                            {receipt.store}
-                        </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <StoreIcon color="primary" />
+                            <Typography
+                                variant="h6"
+                                component="div"
+                                fontWeight="bold"
+                            >
+                                {receipt.store}
+                            </Typography>
+                        </Box>
+                        {onDelete && (
+                            <IconButton
+                                size="small"
+                                onClick={handleMenuClick}
+                                aria-label="more options"
+                            >
+                                <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                        )}
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                         <CalendarTodayIcon
@@ -198,6 +235,28 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt }) => {
                     />
                 </Box>
             </CardContent>
+
+            {/* Action Menu */}
+            <Menu
+                anchorEl={anchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+            >
+                <MenuItem onClick={handleDelete}>
+                    <ListItemIcon>
+                        <DeleteIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Delete</ListItemText>
+                </MenuItem>
+            </Menu>
         </Card>
     );
 };

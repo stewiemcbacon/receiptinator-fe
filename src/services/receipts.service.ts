@@ -63,6 +63,15 @@ export const getAvailableMonths = async (): Promise<AvailableMonth[]> => {
 };
 
 /**
+ * Delete a receipt by ID
+ * @param id - The receipt ID to delete
+ * @returns Promise<void>
+ */
+export const deleteReceipt = async (id: number): Promise<void> => {
+    await api.delete(`/api/receipts/${id}`);
+};
+
+/**
  * Upload a receipt image to the n8n workflow
  * @param file - The image file to upload
  * @returns Promise<void>
