@@ -169,11 +169,35 @@ const Receipts: React.FC = () => {
     };
 
     const handleDeleteReceipt = async (id: number) => {
+        // Find the receipt before deleting to get its data for updating totals
+        const receiptToDelete = receipts.find((r) => r.id === id);
+        if (!receiptToDelete) return;
+
         try {
             await deleteReceipt(id);
 
+            // Calculate the month key for the deleted receipt
+            const date = new Date(receiptToDelete.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
             // Remove receipt from local state
             setReceipts((prev) => prev.filter((receipt) => receipt.id !== id));
+
+            // Update monthly totals
+            setMonthlyTotals((prev) =>
+                prev
+                    .map((monthTotal) => {
+                        if (monthTotal.month === monthKey) {
+                            return {
+                                ...monthTotal,
+                                totalSpent: monthTotal.totalSpent - receiptToDelete.total,
+                                receiptCount: monthTotal.receiptCount - 1
+                            };
+                        }
+                        return monthTotal;
+                    })
+                    .filter((monthTotal) => monthTotal.receiptCount > 0)
+            );
 
             // Update total elements count
             setTotalElements((prev) => prev - 1);
