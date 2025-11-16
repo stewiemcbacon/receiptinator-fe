@@ -9,7 +9,8 @@ import {
     Paper,
     ToggleButton,
     ToggleButtonGroup,
-    CircularProgress
+    CircularProgress,
+    Snackbar
 } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
@@ -18,7 +19,7 @@ import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
 import ReceiptsTable from '../components/ReceiptsTable';
 import MonthHeader from '../components/MonthHeader';
-import { getReceipts, getAvailableMonths } from '../services/receipts.service';
+import { getReceipts, getAvailableMonths, deleteReceipt } from '../services/receipts.service';
 import { Receipt, ReceiptFilters as Filters, MonthlyTotal, AvailableMonth } from '../types/receipt.types';
 
 type ViewMode = 'cards' | 'table';
@@ -35,6 +36,9 @@ const Receipts: React.FC = () => {
     const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
     const [totalElements, setTotalElements] = useState<number>(0);
     const [availableMonths, setAvailableMonths] = useState<AvailableMonth[]>([]);
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -162,6 +166,56 @@ const Receipts: React.FC = () => {
         if (newView !== null) {
             setViewMode(newView);
         }
+    };
+
+    const handleDeleteReceipt = async (id: number) => {
+        // Find the receipt before deleting to get its data for updating totals
+        const receiptToDelete = receipts.find((r) => r.id === id);
+        if (!receiptToDelete) return;
+
+        try {
+            await deleteReceipt(id);
+
+            // Calculate the month key for the deleted receipt
+            const date = new Date(receiptToDelete.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            // Remove receipt from local state
+            setReceipts((prev) => prev.filter((receipt) => receipt.id !== id));
+
+            // Update monthly totals
+            setMonthlyTotals((prev) =>
+                prev
+                    .map((monthTotal) => {
+                        if (monthTotal.month === monthKey) {
+                            return {
+                                ...monthTotal,
+                                totalSpent: monthTotal.totalSpent - receiptToDelete.total,
+                                receiptCount: monthTotal.receiptCount - 1
+                            };
+                        }
+                        return monthTotal;
+                    })
+                    .filter((monthTotal) => monthTotal.receiptCount > 0)
+            );
+
+            // Update total elements count
+            setTotalElements((prev) => prev - 1);
+
+            // Show success message
+            setSnackbarMessage('Receipt deleted successfully');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+        } catch (err) {
+            console.error('Error deleting receipt:', err);
+            setSnackbarMessage('Failed to delete receipt. Please try again.');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        }
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
     };
 
     const LoadingSkeleton = () =>
@@ -358,7 +412,10 @@ const Receipts: React.FC = () => {
                                                     key={receipt.id}
                                                     size={{ xs: 12, sm: 6, md: 4 }}
                                                 >
-                                                    <ReceiptCard receipt={receipt} />
+                                                    <ReceiptCard
+                                                        receipt={receipt}
+                                                        onDelete={handleDeleteReceipt}
+                                                    />
                                                 </Grid>
                                             ))}
                                         </Grid>
@@ -384,6 +441,22 @@ const Receipts: React.FC = () => {
                     )}
                 </>
             )}
+
+            {/* Snackbar for notifications */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };
