@@ -24,9 +24,12 @@ export interface Receipt {
     receiptItems: ReceiptItem[];
 }
 
+export type SearchField = 'store' | 'item' | 'category' | 'storage';
+
 export interface ReceiptFilters {
     searchQuery?: string; // Unified search for store name AND items
     month?: string; // Format: YYYY-MM
+    fields?: SearchField[]; // Fields to search in: store, item, category, storage
 }
 
 export interface MonthlyTotal {

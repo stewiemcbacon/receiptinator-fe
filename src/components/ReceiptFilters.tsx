@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, TextField, Paper, Grid2 as Grid, Typography, MenuItem, IconButton, InputAdornment } from '@mui/material';
+import { Box, TextField, Paper, Grid2 as Grid, Typography, MenuItem, IconButton, InputAdornment, Chip } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchIcon from '@mui/icons-material/Search';
-import { ReceiptFilters as Filters, AvailableMonth } from '../types/receipt.types';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import CategoryIcon from '@mui/icons-material/Category';
+import KitchenIcon from '@mui/icons-material/Kitchen';
+import { ReceiptFilters as Filters, AvailableMonth, SearchField } from '../types/receipt.types';
 
 interface ReceiptFiltersProps {
     filters: Filters;
@@ -13,6 +17,7 @@ interface ReceiptFiltersProps {
 
 const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChange, availableMonths }) => {
     const [localSearchQuery, setLocalSearchQuery] = useState(filters.searchQuery || '');
+    const [localFields, setLocalFields] = useState<SearchField[] | undefined>(filters.fields);
 
     // Debounce search query changes
     useEffect(() => {
@@ -22,7 +27,13 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
         }
 
         const timeoutId = setTimeout(() => {
-            onFiltersChange({ ...filters, searchQuery: localSearchQuery });
+            // Include local fields in the update, but only if search query is not empty
+            const updatedFilters = {
+                ...filters,
+                searchQuery: localSearchQuery,
+                fields: localSearchQuery.trim() ? localFields : undefined
+            };
+            onFiltersChange(updatedFilters);
         }, 500); // 500ms debounce delay
 
         return () => clearTimeout(timeoutId);
@@ -40,6 +51,59 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
     const handleClearSearch = () => {
         setLocalSearchQuery('');
     };
+
+    const handleFieldToggle = (field: SearchField) => {
+        const currentFields = localFields || [];
+        const isActive = currentFields.includes(field);
+
+        let newFields: SearchField[];
+        if (isActive) {
+            // Remove the field
+            newFields = currentFields.filter(f => f !== field);
+        } else {
+            // Add the field
+            newFields = [...currentFields, field];
+        }
+
+        const updatedFields = newFields.length > 0 ? newFields : undefined;
+        setLocalFields(updatedFields);
+
+        // Only trigger a fetch if there's a search query
+        if (localSearchQuery.trim()) {
+            onFiltersChange({ ...filters, fields: updatedFields });
+        }
+    };
+
+    const isFieldActive = (field: SearchField): boolean => {
+        return localFields?.includes(field) || false;
+    };
+
+    const fieldConfigs: Array<{ field: SearchField; label: string; icon: React.ReactElement; description: string }> = [
+        {
+            field: 'store',
+            label: 'Store',
+            icon: <StorefrontIcon fontSize="small" />,
+            description: 'Search store names'
+        },
+        {
+            field: 'item',
+            label: 'Item',
+            icon: <LocalOfferIcon fontSize="small" />,
+            description: 'Search product names'
+        },
+        {
+            field: 'category',
+            label: 'Category',
+            icon: <CategoryIcon fontSize="small" />,
+            description: 'Search item categories'
+        },
+        {
+            field: 'storage',
+            label: 'Storage',
+            icon: <KitchenIcon fontSize="small" />,
+            description: 'Search storage locations'
+        }
+    ];
 
     return (
         <Paper
@@ -116,6 +180,41 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
                             </MenuItem>
                         ))}
                     </TextField>
+                </Grid>
+
+                {/* Field Filter Chips */}
+                <Grid size={{ xs: 12 }}>
+                    <Box>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 1.5, fontWeight: 500 }}
+                        >
+                            Search in: {!filters.fields || filters.fields.length === 0 ? '(All fields)' : ''}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {fieldConfigs.map(({ field, label, icon, description }) => (
+                                <Chip
+                                    key={field}
+                                    label={label}
+                                    icon={icon}
+                                    onClick={() => handleFieldToggle(field)}
+                                    color={isFieldActive(field) ? 'primary' : 'default'}
+                                    variant={isFieldActive(field) ? 'filled' : 'outlined'}
+                                    sx={{
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: 1
+                                        }
+                                    }}
+                                    aria-label={description}
+                                    aria-pressed={isFieldActive(field)}
+                                />
+                            ))}
+                        </Box>
+                    </Box>
                 </Grid>
             </Grid>
         </Paper>

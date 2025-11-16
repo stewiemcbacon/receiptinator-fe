@@ -50,6 +50,10 @@ export const getReceipts = async (
         params.month = filters.month;
     }
 
+    if (filters?.fields && filters.fields.length > 0) {
+        params.fields = filters.fields.join(',');
+    }
+
     const response = await api.get<PagedReceiptsResponse>('/api/receipts', { params });
     return response.data;
 };
