@@ -1,6 +1,9 @@
 export interface Item {
     id: number;
     name: string;
+    normalizedName: string;
+    category: string;
+    storage: string;
     createdAt: string;
 }
 

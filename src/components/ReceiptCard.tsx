@@ -33,9 +33,10 @@ import { Receipt } from '../types/receipt.types';
 interface ReceiptCardProps {
     receipt: Receipt;
     onDelete?: (id: number) => void;
+    showMetadata?: boolean;
 }
 
-const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete }) => {
+const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetadata = true }) => {
     const [expanded, setExpanded] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
@@ -207,7 +208,53 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete }) => {
                                 <TableBody>
                                     {receipt.receiptItems.map((item) => (
                                         <TableRow key={item.id}>
-                                            <TableCell>{item.item.name}</TableCell>
+                                            <TableCell>
+                                                <Box>
+                                                    <Typography variant="body2">
+                                                        {item.item.name}
+                                                    </Typography>
+                                                    {showMetadata && (
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 0.5,
+                                                            mt: 0.5,
+                                                            flexWrap: 'wrap'
+                                                        }}>
+                                                            <Typography
+                                                                variant="caption"
+                                                                color="text.secondary"
+                                                                sx={{ fontStyle: 'italic' }}
+                                                            >
+                                                                {item.item.normalizedName}
+                                                            </Typography>
+                                                            <Typography variant="caption" color="text.secondary">•</Typography>
+                                                            <Chip
+                                                                label={item.item.category}
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 16,
+                                                                    fontSize: '0.65rem',
+                                                                    '& .MuiChip-label': { px: 0.75, py: 0 }
+                                                                }}
+                                                                color="primary"
+                                                                variant="outlined"
+                                                            />
+                                                            <Chip
+                                                                label={item.item.storage}
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 16,
+                                                                    fontSize: '0.65rem',
+                                                                    '& .MuiChip-label': { px: 0.75, py: 0 }
+                                                                }}
+                                                                color="secondary"
+                                                                variant="outlined"
+                                                            />
+                                                        </Box>
+                                                    )}
+                                                </Box>
+                                            </TableCell>
                                             <TableCell align="right">{item.quantity}</TableCell>
                                             <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>
                                             <TableCell align="right">

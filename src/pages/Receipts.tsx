@@ -10,11 +10,14 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     CircularProgress,
-    Snackbar
+    Snackbar,
+    FormControlLabel,
+    Switch
 } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import TableRowsIcon from '@mui/icons-material/TableRows';
+import InfoIcon from '@mui/icons-material/Info';
 import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
 import ReceiptsTable from '../components/ReceiptsTable';
@@ -31,6 +34,7 @@ const Receipts: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<Filters>({ searchQuery: '' });
     const [viewMode, setViewMode] = useState<ViewMode>('cards');
+    const [showMetadata, setShowMetadata] = useState<boolean>(true);
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
@@ -367,28 +371,47 @@ const Receipts: React.FC = () => {
                         >
                             Showing {receipts.length} of {totalElements} receipt{totalElements !== 1 ? 's' : ''}
                         </Typography>
-                        <ToggleButtonGroup
-                            value={viewMode}
-                            exclusive
-                            onChange={handleViewChange}
-                            aria-label="view mode"
-                            size="small"
-                        >
-                            <ToggleButton
-                                value="cards"
-                                aria-label="card view"
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            {viewMode === 'cards' && (
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={showMetadata}
+                                            onChange={(e) => setShowMetadata(e.target.checked)}
+                                            size="small"
+                                        />
+                                    }
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <InfoIcon fontSize="small" />
+                                            <Typography variant="body2">Show item details</Typography>
+                                        </Box>
+                                    }
+                                />
+                            )}
+                            <ToggleButtonGroup
+                                value={viewMode}
+                                exclusive
+                                onChange={handleViewChange}
+                                aria-label="view mode"
+                                size="small"
                             >
-                                <ViewModuleIcon sx={{ mr: 1 }} />
-                                Cards
-                            </ToggleButton>
-                            <ToggleButton
-                                value="table"
-                                aria-label="table view"
-                            >
-                                <TableRowsIcon sx={{ mr: 1 }} />
-                                Table
-                            </ToggleButton>
-                        </ToggleButtonGroup>
+                                <ToggleButton
+                                    value="cards"
+                                    aria-label="card view"
+                                >
+                                    <ViewModuleIcon sx={{ mr: 1 }} />
+                                    Cards
+                                </ToggleButton>
+                                <ToggleButton
+                                    value="table"
+                                    aria-label="table view"
+                                >
+                                    <TableRowsIcon sx={{ mr: 1 }} />
+                                    Table
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+                        </Box>
                     </Box>
 
                     {viewMode === 'cards' ? (
@@ -415,6 +438,7 @@ const Receipts: React.FC = () => {
                                                     <ReceiptCard
                                                         receipt={receipt}
                                                         onDelete={handleDeleteReceipt}
+                                                        showMetadata={showMetadata}
                                                     />
                                                 </Grid>
                                             ))}
