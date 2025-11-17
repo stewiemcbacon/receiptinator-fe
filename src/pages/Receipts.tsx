@@ -7,25 +7,18 @@ import {
     Alert,
     Skeleton,
     Paper,
-    ToggleButton,
-    ToggleButtonGroup,
     CircularProgress,
     Snackbar,
     FormControlLabel,
     Switch
 } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import TableRowsIcon from '@mui/icons-material/TableRows';
 import InfoIcon from '@mui/icons-material/Info';
 import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
-import ReceiptsTable from '../components/ReceiptsTable';
 import MonthHeader from '../components/MonthHeader';
 import { getReceipts, getAvailableMonths, deleteReceipt } from '../services/receipts.service';
 import { Receipt, ReceiptFilters as Filters, MonthlyTotal, AvailableMonth } from '../types/receipt.types';
-
-type ViewMode = 'cards' | 'table';
 
 const Receipts: React.FC = () => {
     const [receipts, setReceipts] = useState<Receipt[]>([]);
@@ -33,7 +26,6 @@ const Receipts: React.FC = () => {
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<Filters>({ searchQuery: '' });
-    const [viewMode, setViewMode] = useState<ViewMode>('cards');
     const [showMetadata, setShowMetadata] = useState<boolean>(true);
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
@@ -124,8 +116,6 @@ const Receipts: React.FC = () => {
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
-        if (viewMode !== 'cards') return;
-
         const options = {
             root: null,
             rootMargin: '100px',
@@ -147,7 +137,7 @@ const Receipts: React.FC = () => {
                 observerRef.current.disconnect();
             }
         };
-    }, [loadMore, viewMode]);
+    }, [loadMore]);
 
     // Group receipts by month for Card view
     const groupReceiptsByMonth = (receipts: Receipt[]): Map<string, Receipt[]> => {
@@ -164,12 +154,6 @@ const Receipts: React.FC = () => {
         });
 
         return grouped;
-    };
-
-    const handleViewChange = (_event: React.MouseEvent<HTMLElement>, newView: ViewMode | null) => {
-        if (newView !== null) {
-            setViewMode(newView);
-        }
     };
 
     const handleDeleteReceipt = async (id: number) => {
@@ -222,58 +206,47 @@ const Receipts: React.FC = () => {
         setSnackbarOpen(false);
     };
 
-    const LoadingSkeleton = () =>
-        viewMode === 'cards' ? (
-            <Grid
-                container
-                spacing={3}
-            >
-                {[1, 2, 3, 4, 5, 6].map((item) => (
-                    <Grid
-                        key={item}
-                        size={{ xs: 12, sm: 6, md: 4 }}
+    const LoadingSkeleton = () => (
+        <Grid
+            container
+            spacing={3}
+        >
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+                <Grid
+                    key={item}
+                    size={{ xs: 12, sm: 6, md: 4 }}
+                >
+                    <Paper
+                        elevation={2}
+                        sx={{ p: 2 }}
                     >
-                        <Paper
-                            elevation={2}
-                            sx={{ p: 2 }}
-                        >
-                            <Skeleton
-                                variant="text"
-                                width="60%"
-                                height={32}
-                            />
-                            <Skeleton
-                                variant="text"
-                                width="40%"
-                                height={24}
-                                sx={{ mt: 1 }}
-                            />
-                            <Skeleton
-                                variant="rectangular"
-                                height={100}
-                                sx={{ mt: 2 }}
-                            />
-                            <Skeleton
-                                variant="text"
-                                width="30%"
-                                height={24}
-                                sx={{ mt: 2 }}
-                            />
-                        </Paper>
-                    </Grid>
-                ))}
-            </Grid>
-        ) : (
-            <Paper
-                elevation={2}
-                sx={{ p: 2 }}
-            >
-                <Skeleton
-                    variant="rectangular"
-                    height={400}
-                />
-            </Paper>
-        );
+                        <Skeleton
+                            variant="text"
+                            width="60%"
+                            height={32}
+                        />
+                        <Skeleton
+                            variant="text"
+                            width="40%"
+                            height={24}
+                            sx={{ mt: 1 }}
+                        />
+                        <Skeleton
+                            variant="rectangular"
+                            height={100}
+                            sx={{ mt: 2 }}
+                        />
+                        <Skeleton
+                            variant="text"
+                            width="30%"
+                            height={24}
+                            sx={{ mt: 2 }}
+                        />
+                    </Paper>
+                </Grid>
+            ))}
+        </Grid>
+    );
 
     return (
         <Container
@@ -371,98 +344,68 @@ const Receipts: React.FC = () => {
                         >
                             Showing {receipts.length} of {totalElements} receipt{totalElements !== 1 ? 's' : ''}
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                            {viewMode === 'cards' && (
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={showMetadata}
-                                            onChange={(e) => setShowMetadata(e.target.checked)}
-                                            size="small"
-                                        />
-                                    }
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <InfoIcon fontSize="small" />
-                                            <Typography variant="body2">Show item details</Typography>
-                                        </Box>
-                                    }
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={showMetadata}
+                                    onChange={(e) => setShowMetadata(e.target.checked)}
+                                    size="small"
                                 />
-                            )}
-                            <ToggleButtonGroup
-                                value={viewMode}
-                                exclusive
-                                onChange={handleViewChange}
-                                aria-label="view mode"
-                                size="small"
-                            >
-                                <ToggleButton
-                                    value="cards"
-                                    aria-label="card view"
-                                >
-                                    <ViewModuleIcon sx={{ mr: 1 }} />
-                                    Cards
-                                </ToggleButton>
-                                <ToggleButton
-                                    value="table"
-                                    aria-label="table view"
-                                >
-                                    <TableRowsIcon sx={{ mr: 1 }} />
-                                    Table
-                                </ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <InfoIcon fontSize="small" />
+                                    <Typography variant="body2">Show item details</Typography>
+                                </Box>
+                            }
+                        />
                     </Box>
 
-                    {viewMode === 'cards' ? (
-                        <Box>
-                            {Array.from(groupReceiptsByMonth(receipts)).map(([monthKey, monthReceipts]) => {
-                                const monthTotal = monthlyTotals.find((t) => t.month === monthKey);
-                                return (
-                                    <Box key={monthKey}>
-                                        <MonthHeader
-                                            month={monthKey}
-                                            totalSpent={monthTotal?.totalSpent || 0}
-                                            receiptCount={monthTotal?.receiptCount || 0}
-                                        />
-                                        <Grid
-                                            container
-                                            spacing={3}
-                                            sx={{ mb: 4 }}
-                                        >
-                                            {monthReceipts.map((receipt) => (
-                                                <Grid
-                                                    key={receipt.id}
-                                                    size={{ xs: 12, sm: 6, md: 4 }}
-                                                >
-                                                    <ReceiptCard
-                                                        receipt={receipt}
-                                                        onDelete={handleDeleteReceipt}
-                                                        showMetadata={showMetadata}
-                                                    />
-                                                </Grid>
-                                            ))}
-                                        </Grid>
-                                    </Box>
-                                );
-                            })}
-                            {/* Infinite scroll trigger */}
-                            {hasMore && (
-                                <Box
-                                    ref={loadMoreRef}
-                                    sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        py: 4
-                                    }}
-                                >
-                                    {loadingMore && <CircularProgress />}
+                    <Box>
+                        {Array.from(groupReceiptsByMonth(receipts)).map(([monthKey, monthReceipts]) => {
+                            const monthTotal = monthlyTotals.find((t) => t.month === monthKey);
+                            return (
+                                <Box key={monthKey}>
+                                    <MonthHeader
+                                        month={monthKey}
+                                        totalSpent={monthTotal?.totalSpent || 0}
+                                        receiptCount={monthTotal?.receiptCount || 0}
+                                    />
+                                    <Grid
+                                        container
+                                        spacing={3}
+                                        sx={{ mb: 4 }}
+                                    >
+                                        {monthReceipts.map((receipt) => (
+                                            <Grid
+                                                key={receipt.id}
+                                                size={{ xs: 12, sm: 6, md: 4 }}
+                                            >
+                                                <ReceiptCard
+                                                    receipt={receipt}
+                                                    onDelete={handleDeleteReceipt}
+                                                    showMetadata={showMetadata}
+                                                />
+                                            </Grid>
+                                        ))}
+                                    </Grid>
                                 </Box>
-                            )}
-                        </Box>
-                    ) : (
-                        <ReceiptsTable receipts={receipts} />
-                    )}
+                            );
+                        })}
+                        {/* Infinite scroll trigger */}
+                        {hasMore && (
+                            <Box
+                                ref={loadMoreRef}
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    py: 4
+                                }}
+                            >
+                                {loadingMore && <CircularProgress />}
+                            </Box>
+                        )}
+                    </Box>
                 </>
             )}
 
