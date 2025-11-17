@@ -7,6 +7,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import CategoryIcon from '@mui/icons-material/Category';
 import KitchenIcon from '@mui/icons-material/Kitchen';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { ReceiptFilters as Filters, AvailableMonth, SearchField } from '../types/receipt.types';
 
 interface ReceiptFiltersProps {
@@ -102,6 +103,12 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
             label: 'Storage',
             icon: <KitchenIcon fontSize="small" />,
             description: 'Search storage locations'
+        },
+        {
+            field: 'receipt_category',
+            label: 'Receipt Category',
+            icon: <ReceiptLongIcon fontSize="small" />,
+            description: 'Search receipt categories'
         }
     ];
 

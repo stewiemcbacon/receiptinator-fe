@@ -123,6 +123,19 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetada
                             {formatDate(receipt.date)}
                         </Typography>
                     </Box>
+                    {showMetadata && receipt.category && (
+                        <Box sx={{ mt: 1 }}>
+                            <Chip
+                                label={receipt.category}
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                sx={{
+                                    fontWeight: 'medium'
+                                }}
+                            />
+                        </Box>
+                    )}
                 </Box>
 
                 <Divider sx={{ my: 2 }} />

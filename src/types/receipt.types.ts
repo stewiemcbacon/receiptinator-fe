@@ -23,11 +23,12 @@ export interface Receipt {
     subtotal: number;
     tax: number;
     total: number;
+    category: string | null;
     createdAt: string;
     receiptItems: ReceiptItem[];
 }
 
-export type SearchField = 'store' | 'item' | 'category' | 'storage';
+export type SearchField = 'store' | 'item' | 'category' | 'storage' | 'receipt_category';
 
 export interface ReceiptFilters {
     searchQuery?: string; // Unified search for store name AND items
