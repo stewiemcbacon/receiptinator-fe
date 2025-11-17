@@ -50,6 +50,10 @@ export const getReceipts = async (
         params.month = filters.month;
     }
 
+    if (filters?.category) {
+        params.category = filters.category;
+    }
+
     if (filters?.fields && filters.fields.length > 0) {
         params.fields = filters.fields.join(',');
     }

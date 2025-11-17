@@ -7,8 +7,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import CategoryIcon from '@mui/icons-material/Category';
 import KitchenIcon from '@mui/icons-material/Kitchen';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import { ReceiptFilters as Filters, AvailableMonth, SearchField } from '../types/receipt.types';
+import { ReceiptFilters as Filters, AvailableMonth, SearchField, ReceiptCategory, ReceiptCategoryLabels } from '../types/receipt.types';
 
 interface ReceiptFiltersProps {
     filters: Filters;
@@ -47,6 +46,11 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
     const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         onFiltersChange({ ...filters, month: value || undefined });
+    };
+
+    const handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        onFiltersChange({ ...filters, category: value ? (value as ReceiptCategory) : undefined });
     };
 
     const handleClearSearch = () => {
@@ -103,12 +107,6 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
             label: 'Storage',
             icon: <KitchenIcon fontSize="small" />,
             description: 'Search storage locations'
-        },
-        {
-            field: 'receipt_category',
-            label: 'Receipt Category',
-            icon: <ReceiptLongIcon fontSize="small" />,
-            description: 'Search receipt categories'
         }
     ];
 
@@ -132,7 +130,7 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
                 spacing={2}
             >
                 {/* Search Input */}
-                <Grid size={{ xs: 12, md: 8 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                         fullWidth
                         label="Search"
@@ -165,7 +163,7 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
                 </Grid>
 
                 {/* Month Filter */}
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                         fullWidth
                         select
@@ -184,6 +182,31 @@ const ReceiptFilters: React.FC<ReceiptFiltersProps> = ({ filters, onFiltersChang
                                 value={month.month}
                             >
                                 {month.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+
+                {/* Category Filter */}
+                <Grid size={{ xs: 12, md: 3 }}>
+                    <TextField
+                        fullWidth
+                        select
+                        label="Category"
+                        value={filters.category || ''}
+                        onChange={handleCategoryChange}
+                        variant="outlined"
+                        size="small"
+                    >
+                        <MenuItem value="">
+                            <em>All Categories</em>
+                        </MenuItem>
+                        {Object.entries(ReceiptCategory).map(([key, value]) => (
+                            <MenuItem
+                                key={value}
+                                value={value}
+                            >
+                                {ReceiptCategoryLabels[value]}
                             </MenuItem>
                         ))}
                     </TextField>

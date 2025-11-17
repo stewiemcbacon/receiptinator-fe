@@ -28,11 +28,38 @@ export interface Receipt {
     receiptItems: ReceiptItem[];
 }
 
-export type SearchField = 'store' | 'item' | 'category' | 'storage' | 'receipt_category';
+export type SearchField = 'store' | 'item' | 'category' | 'storage';
+
+export enum ReceiptCategory {
+    SUPERMARKET = 'SUPERMARKET',
+    RESTAURANT = 'RESTAURANT',
+    PHARMACY = 'PHARMACY',
+    FUEL = 'FUEL',
+    CLOTHING = 'CLOTHING',
+    ELECTRONICS = 'ELECTRONICS',
+    HARDWARE = 'HARDWARE',
+    ENTERTAINMENT = 'ENTERTAINMENT',
+    HEALTH = 'HEALTH',
+    OTHER = 'OTHER'
+}
+
+export const ReceiptCategoryLabels: Record<ReceiptCategory, string> = {
+    [ReceiptCategory.SUPERMARKET]: 'Supermarket',
+    [ReceiptCategory.RESTAURANT]: 'Restaurant',
+    [ReceiptCategory.PHARMACY]: 'Pharmacy',
+    [ReceiptCategory.FUEL]: 'Fuel',
+    [ReceiptCategory.CLOTHING]: 'Clothing',
+    [ReceiptCategory.ELECTRONICS]: 'Electronics',
+    [ReceiptCategory.HARDWARE]: 'Hardware',
+    [ReceiptCategory.ENTERTAINMENT]: 'Entertainment',
+    [ReceiptCategory.HEALTH]: 'Health',
+    [ReceiptCategory.OTHER]: 'Other'
+};
 
 export interface ReceiptFilters {
     searchQuery?: string; // Unified search for store name AND items
     month?: string; // Format: YYYY-MM
+    category?: ReceiptCategory; // Receipt category filter
     fields?: SearchField[]; // Fields to search in: store, item, category, storage
 }
 
