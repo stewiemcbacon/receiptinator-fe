@@ -26,7 +26,7 @@ const Receipts: React.FC = () => {
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<Filters>({ searchQuery: '' });
-    const [showMetadata, setShowMetadata] = useState<boolean>(true);
+    const [showMetadata, setShowMetadata] = useState<boolean>(false);
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
