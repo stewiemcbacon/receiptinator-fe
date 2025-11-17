@@ -26,7 +26,7 @@ const Receipts: React.FC = () => {
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [filters, setFilters] = useState<Filters>({ searchQuery: '' });
-    const [showMetadata, setShowMetadata] = useState<boolean>(false);
+    const [showMetadata, setShowMetadata] = useState<boolean>(true);
     const [page, setPage] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotal[]>([]);
@@ -355,7 +355,7 @@ const Receipts: React.FC = () => {
                             label={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     <InfoIcon fontSize="small" />
-                                    <Typography variant="body2">Show item details</Typography>
+                                    <Typography variant="body2">Show details</Typography>
                                 </Box>
                             }
                         />

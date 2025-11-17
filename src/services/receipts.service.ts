@@ -54,6 +54,14 @@ export const getReceipts = async (
         params.category = filters.category;
     }
 
+    if (filters?.itemCategory) {
+        params.itemCategory = filters.itemCategory;
+    }
+
+    if (filters?.storage) {
+        params.storage = filters.storage;
+    }
+
     if (filters?.fields && filters.fields.length > 0) {
         params.fields = filters.fields.join(',');
     }
@@ -77,6 +85,30 @@ export const getAvailableMonths = async (): Promise<AvailableMonth[]> => {
  */
 export const deleteReceipt = async (id: number): Promise<void> => {
     await api.delete(`/api/receipts/${id}`);
+};
+
+/**
+ * Fetch available receipt categories
+ */
+export const getReceiptCategories = async (): Promise<string[]> => {
+    const response = await api.get<string[]>('/api/receipts/categories');
+    return response.data;
+};
+
+/**
+ * Fetch available item categories
+ */
+export const getItemCategories = async (): Promise<string[]> => {
+    const response = await api.get<string[]>('/api/items/categories');
+    return response.data;
+};
+
+/**
+ * Fetch available storage types
+ */
+export const getStorageTypes = async (): Promise<string[]> => {
+    const response = await api.get<string[]>('/api/items/storage-types');
+    return response.data;
 };
 
 /**

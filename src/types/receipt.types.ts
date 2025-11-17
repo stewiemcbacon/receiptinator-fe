@@ -28,39 +28,23 @@ export interface Receipt {
     receiptItems: ReceiptItem[];
 }
 
-export type SearchField = 'store' | 'item' | 'category' | 'storage';
+export type SearchField = 'store' | 'item';
 
-export enum ReceiptCategory {
-    SUPERMARKET = 'SUPERMARKET',
-    RESTAURANT = 'RESTAURANT',
-    PHARMACY = 'PHARMACY',
-    FUEL = 'FUEL',
-    CLOTHING = 'CLOTHING',
-    ELECTRONICS = 'ELECTRONICS',
-    HARDWARE = 'HARDWARE',
-    ENTERTAINMENT = 'ENTERTAINMENT',
-    HEALTH = 'HEALTH',
-    OTHER = 'OTHER'
-}
-
-export const ReceiptCategoryLabels: Record<ReceiptCategory, string> = {
-    [ReceiptCategory.SUPERMARKET]: 'Supermarket',
-    [ReceiptCategory.RESTAURANT]: 'Restaurant',
-    [ReceiptCategory.PHARMACY]: 'Pharmacy',
-    [ReceiptCategory.FUEL]: 'Fuel',
-    [ReceiptCategory.CLOTHING]: 'Clothing',
-    [ReceiptCategory.ELECTRONICS]: 'Electronics',
-    [ReceiptCategory.HARDWARE]: 'Hardware',
-    [ReceiptCategory.ENTERTAINMENT]: 'Entertainment',
-    [ReceiptCategory.HEALTH]: 'Health',
-    [ReceiptCategory.OTHER]: 'Other'
+// Helper function to format category labels from backend enum values
+export const formatCategoryLabel = (category: string): string => {
+    return category
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
 };
 
 export interface ReceiptFilters {
     searchQuery?: string; // Unified search for store name AND items
     month?: string; // Format: YYYY-MM
-    category?: ReceiptCategory; // Receipt category filter
-    fields?: SearchField[]; // Fields to search in: store, item, category, storage
+    category?: string; // Receipt category filter
+    itemCategory?: string; // Item category filter
+    storage?: string; // Item storage filter
+    fields?: SearchField[]; // Fields to search in: store, item
 }
 
 export interface MonthlyTotal {
