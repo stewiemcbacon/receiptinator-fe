@@ -21,6 +21,7 @@ export interface Receipt {
     store: string;
     date: string;
     subtotal: number;
+    discount: number;
     tax: number;
     total: number;
     category: string | null;

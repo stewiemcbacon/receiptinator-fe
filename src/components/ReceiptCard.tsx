@@ -151,6 +151,22 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetada
                         </Typography>
                         <Typography variant="body2">{formatCurrency(receipt.subtotal)}</Typography>
                     </Box>
+                    {receipt.discount > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography
+                                variant="body2"
+                                color="success.main"
+                            >
+                                Discount:
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                color="success.main"
+                            >
+                                -{formatCurrency(receipt.discount)}
+                            </Typography>
+                        </Box>
+                    )}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                         <Typography
                             variant="body2"
