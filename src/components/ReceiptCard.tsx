@@ -28,15 +28,17 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { Receipt } from '../types/receipt.types';
 
 interface ReceiptCardProps {
     receipt: Receipt;
     onDelete?: (id: number) => void;
+    onEdit?: (receipt: Receipt) => void;
     showMetadata?: boolean;
 }
 
-const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetadata = true }) => {
+const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, onEdit, showMetadata = true }) => {
     const [expanded, setExpanded] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
@@ -54,6 +56,13 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetada
         handleMenuClose();
         if (onDelete) {
             onDelete(receipt.id);
+        }
+    };
+
+    const handleEdit = () => {
+        handleMenuClose();
+        if (onEdit) {
+            onEdit(receipt);
         }
     };
 
@@ -101,7 +110,7 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetada
                                 {receipt.store}
                             </Typography>
                         </Box>
-                        {onDelete && (
+                        {(onDelete || onEdit) && (
                             <IconButton
                                 size="small"
                                 onClick={handleMenuClick}
@@ -326,12 +335,22 @@ const ReceiptCard: React.FC<ReceiptCardProps> = ({ receipt, onDelete, showMetada
                     horizontal: 'right',
                 }}
             >
-                <MenuItem onClick={handleDelete}>
-                    <ListItemIcon>
-                        <DeleteIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Delete</ListItemText>
-                </MenuItem>
+                {onEdit && (
+                    <MenuItem onClick={handleEdit}>
+                        <ListItemIcon>
+                            <EditIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Edit</ListItemText>
+                    </MenuItem>
+                )}
+                {onDelete && (
+                    <MenuItem onClick={handleDelete}>
+                        <ListItemIcon>
+                            <DeleteIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Delete</ListItemText>
+                    </MenuItem>
+                )}
             </Menu>
         </Card>
     );

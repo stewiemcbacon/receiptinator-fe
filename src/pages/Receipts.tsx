@@ -17,6 +17,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import ReceiptCard from '../components/ReceiptCard';
 import ReceiptFilters from '../components/ReceiptFilters';
 import MonthHeader from '../components/MonthHeader';
+import ReceiptUpdateDialog from '../components/ReceiptUpdateDialog';
 import { getReceipts, getAvailableMonths, deleteReceipt } from '../services/receipts.service';
 import { Receipt, ReceiptFilters as Filters, MonthlyTotal, AvailableMonth } from '../types/receipt.types';
 
@@ -35,6 +36,8 @@ const Receipts: React.FC = () => {
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
     const [snackbarMessage, setSnackbarMessage] = useState<string>('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+    const [updateDialogOpen, setUpdateDialogOpen] = useState<boolean>(false);
+    const [receiptToEdit, setReceiptToEdit] = useState<Receipt | null>(null);
 
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -200,6 +203,21 @@ const Receipts: React.FC = () => {
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
         }
+    };
+
+    const handleEditReceipt = (receipt: Receipt) => {
+        setReceiptToEdit(receipt);
+        setUpdateDialogOpen(true);
+    };
+
+    const handleUpdateDialogClose = () => {
+        setUpdateDialogOpen(false);
+        setReceiptToEdit(null);
+    };
+
+    const handleUpdateSuccess = () => {
+        // Refresh receipts data to get the latest changes
+        void fetchReceipts(filters);
     };
 
     const handleSnackbarClose = () => {
@@ -384,6 +402,7 @@ const Receipts: React.FC = () => {
                                                 <ReceiptCard
                                                     receipt={receipt}
                                                     onDelete={handleDeleteReceipt}
+                                                    onEdit={handleEditReceipt}
                                                     showMetadata={showMetadata}
                                                 />
                                             </Grid>
@@ -424,6 +443,14 @@ const Receipts: React.FC = () => {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+
+            {/* Update Receipt Dialog */}
+            <ReceiptUpdateDialog
+                open={updateDialogOpen}
+                onClose={handleUpdateDialogClose}
+                receipt={receiptToEdit}
+                onUpdateSuccess={handleUpdateSuccess}
+            />
         </Container>
     );
 };

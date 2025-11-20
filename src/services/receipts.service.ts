@@ -88,6 +88,17 @@ export const deleteReceipt = async (id: number): Promise<void> => {
 };
 
 /**
+ * Update a receipt by ID
+ * @param id - The receipt ID to update
+ * @param data - The receipt data to update (supports full CRUD on items)
+ * @returns Promise<Receipt> - The updated receipt
+ */
+export const updateReceipt = async (id: number, data: Partial<Receipt>): Promise<Receipt> => {
+    const response = await api.put<Receipt>(`/api/receipts/${id}`, data);
+    return response.data;
+};
+
+/**
  * Fetch available receipt categories
  */
 export const getReceiptCategories = async (): Promise<string[]> => {
